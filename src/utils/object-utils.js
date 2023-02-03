@@ -43,9 +43,12 @@ const mergeDeep = (target, ...sources) => {
  * @param {*} path
  * @returns
  */
-const mergeDeepToPath = (target, source, path) => {
+const mergeDeepToPath = (target, source, path, commonObj = {}) => {
     var paths = path.split('/').slice(1);
-    let deepObj = createObjToPath(source, paths);
+    let deepObj = createObjToPath(source, paths, commonObj);
+
+    console.log(deepObj);
+
     const obj = mergeDeep(target, deepObj);
     return obj;
 };
@@ -75,11 +78,10 @@ const setDeepToPath = (target, source, path) => {
  * @param {*} paths
  * @returns
  */
-const createObjToPath = (target, paths) => {
+const createObjToPath = (target, paths, commonObj = {}) => {
     if (!paths || paths.length == 0) return target;
-
-    const obj = {};
-    obj[paths[0]] = createObjToPath(target, paths.slice(1));
+    const obj = { ...commonObj };
+    obj[paths[0]] = createObjToPath(target, paths.slice(1), commonObj);
     return obj;
 };
 

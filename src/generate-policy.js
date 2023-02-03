@@ -1,8 +1,15 @@
 const { XMLBuilder, XMLParser } = require('fast-xml-parser');
-const { mergeDeep } = require('./utils/object-utils');
+const { mergeDeep, createObjToPath } = require('./utils/object-utils');
 
 const fs = require('fs');
 const path = require('path');
+
+const Parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '',
+    attributesGroupName: 'attributes',
+    suppressBooleanAttributes: false,
+});
 
 const Builder = (tabWidth = 4) =>
     new XMLBuilder({
@@ -78,13 +85,7 @@ const exportXML = (policies, policyPath, tabWidth = 4) => {
 
     const newXmlObj = generate(policies, false, tabWidth);
 
-    const parser = new XMLParser({
-        ignoreAttributes: false,
-        attributeNamePrefix: '',
-        attributesGroupName: 'attributes',
-        suppressBooleanAttributes: false,
-    });
-    const oldXmlObj = parser.parse(fs.readFileSync(filePath));
+    const oldXmlObj = Parser.parse(fs.readFileSync(filePath));
 
     const mergedXmlObj = mergeDeep(oldXmlObj, newXmlObj);
     const xmlBuilder = Builder(tabWidth);
@@ -92,4 +93,41 @@ const exportXML = (policies, policyPath, tabWidth = 4) => {
     fs.writeFileSync(filePath, xmlStr);
 };
 
-module.exports = { generate, generateXML, exportXML };
+const addPoliciesToTemplate = (policies, templatePath, pageRelativePath, tabWidth = 4) => {
+    const filePath = path.resolve(templatePath, '.content.xml');
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
+
+    let finalMapObj = {};
+    for (const policy of policies) {
+        const mappingObj = {
+            attributes: {
+                'cq:policy': `${policy.component}/${policy.policy}`,
+                'sling:resourceType': 'wcm/core/components/policies/mapping',
+                'jcr:primaryType': 'nt:unstructured',
+            },
+        };
+
+        const paths = ['jcr:content', ...pageRelativePath.split('/'), ...policy.component.split('/')];
+        const tmpObj = createObjToPath(mappingObj, paths, {
+            attributes: { 'jcr:primaryType': 'nt:unstructured' },
+        });
+
+        const fMappingObj = {
+            'jcr:root': {
+                'jcr:content': tmpObj['jcr:content'],
+            },
+        };
+
+        finalMapObj = mergeDeep(finalMapObj, fMappingObj);
+    }
+
+    const oldXmlObj = Parser.parse(fs.readFileSync(filePath));
+    const finalXmlObj = mergeDeep(oldXmlObj, finalMapObj);
+    const xmlBuilder = Builder(tabWidth);
+    const xmlStr = xmlBuilder.build(finalXmlObj);
+    fs.writeFileSync(filePath, xmlStr);
+};
+
+module.exports = { generate, generateXML, exportXML, addPoliciesToTemplate };

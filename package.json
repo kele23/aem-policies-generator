@@ -1,6 +1,6 @@
 {
     "name": "@kele23/aem-policies-generator",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "AEM Policies generator",
     "main": "index.js",
     "keywords": [
