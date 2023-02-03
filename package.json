@@ -1,0 +1,25 @@
+{
+    "name": "@kele23/aem-policies-generator",
+    "version": "0.0.1",
+    "description": "AEM Policies generator",
+    "main": "index.js",
+    "keywords": [
+        "aem",
+        "policy",
+        "generator"
+    ],
+    "scripts": {
+        "test": "node test/run-test.js"
+    },
+    "author": "Michele Scala <m.scala@reply.it>",
+    "license": "MIT",
+    "devDependencies": {
+        "eslint": "^7.13.0",
+        "eslint-config-prettier": "^7.2.0",
+        "eslint-plugin-prettier": "^3.4.0",
+        "prettier": "^2.3.2"
+    },
+    "dependencies": {
+        "fast-xml-parser": "^4.0.7"
+    }
+}
